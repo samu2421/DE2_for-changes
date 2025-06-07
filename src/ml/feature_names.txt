@@ -1,0 +1,10 @@
+Quantity
+UnitPrice
+Hour
+DayOfWeek
+Month
+IsWeekend
+IsBusinessHours
+Country_encoded
+PriceRange_encoded
+QuantityRange_encoded

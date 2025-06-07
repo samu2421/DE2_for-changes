@@ -15,7 +15,7 @@ def test_prediction_api():
     try:
         # Make prediction request
         response = requests.post(
-            'http://localhost:5000/predict',
+            'http://localhost:5001/predict',
             json=test_order
         )
         

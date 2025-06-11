@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 import json
 from pathlib import Path
 import logging
-import requests
+from google.cloud import bigquery
+import os
 
 # Set up logging
 logging.basicConfig(
@@ -21,40 +22,75 @@ logger = logging.getLogger(__name__)
 
 class EcommerceBatchProcessor:
     """
-    Enhanced batch processor for e-commerce analytics
-    Handles daily/historical data processing with ML integration
+    BigQuery-powered batch processor for e-commerce analytics
+    Handles daily/historical data processing with robust error handling
     """
     
-    def __init__(self, data_path='data/OnlineRetail.csv', ml_api_url='http://localhost:5001'):
-        self.data_path = data_path
-        self.ml_api_url = ml_api_url
+    def __init__(self, project_id='ecommerce-analytics-462115', dataset_id='ecommerce_data', table_id='historical_orders'):
+        self.project_id = project_id
+        self.dataset_id = dataset_id
+        self.table_id = table_id
+        self.table_ref = f"{project_id}.{dataset_id}.{table_id}"
+        self.client = None
         self.df = None
         self.processed_metrics = {}
-        self.ml_available = False
-        self.check_ml_availability()
         
-    def check_ml_availability(self):
-        """Check if ML API is available for predictions"""
+    def initialize_bigquery_client(self):
+        """Initialize BigQuery client with authentication"""
         try:
-            response = requests.get(f"{self.ml_api_url}/health", timeout=3)
-            if response.status_code == 200:
-                self.ml_available = True
-                logger.info("✅ ML API is available for predictions")
-            else:
-                logger.info(f"⚠️ ML API responded with status {response.status_code}")
-        except requests.exceptions.RequestException:
-            logger.info("ℹ️ ML API not available - proceeding without ML predictions")
-        
-    def load_data(self):
-        """Load and prepare the dataset"""
-        try:
-            logger.info("Loading e-commerce dataset...")
-            self.df = pd.read_csv(self.data_path, encoding='latin1')
+            # Initialize BigQuery client
+            self.client = bigquery.Client(project=self.project_id)
+            logger.info(f"BigQuery client initialized for project: {self.project_id}")
             
-            # Data cleaning
-            self.df = self.df.dropna()
-            self.df = self.df[self.df['Quantity'] > 0]
-            self.df = self.df[self.df['UnitPrice'] > 0]
+            # Test connection by listing datasets
+            datasets = list(self.client.list_datasets())
+            logger.info(f"Found {len(datasets)} datasets in project")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error initializing BigQuery client: {e}")
+            logger.error("Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key")
+            return False
+    
+    def load_data_from_bigquery(self, limit=None):
+        """Load and prepare the dataset from BigQuery"""
+        if not self.client:
+            logger.error("BigQuery client not initialized. Call initialize_bigquery_client() first.")
+            return False
+            
+        try:
+            logger.info(f"Loading e-commerce dataset from BigQuery table: {self.table_ref}")
+            
+            # Construct query with optional limit for testing
+            limit_clause = f"LIMIT {limit}" if limit else ""
+            
+            query = f"""
+            SELECT 
+                InvoiceNo,
+                StockCode,
+                Description,
+                Quantity,
+                InvoiceDate,
+                UnitPrice,
+                CustomerID,
+                Country
+            FROM `{self.table_ref}`
+            WHERE 
+                Quantity > 0 
+                AND UnitPrice > 0
+                AND CustomerID IS NOT NULL
+                AND InvoiceDate IS NOT NULL
+            ORDER BY InvoiceDate DESC
+            {limit_clause}
+            """
+            
+            logger.info("Executing BigQuery query...")
+            self.df = self.client.query(query).to_dataframe()
+            
+            if self.df.empty:
+                logger.warning("No data returned from BigQuery query")
+                return False
             
             # Feature engineering
             self.df['Revenue'] = self.df['Quantity'] * self.df['UnitPrice']
@@ -65,52 +101,28 @@ class EcommerceBatchProcessor:
             self.df['Month'] = self.df['InvoiceDate'].dt.month
             self.df['Year'] = self.df['InvoiceDate'].dt.year
             
-            logger.info(f"Dataset loaded: {len(self.df):,} clean transactions")
+            logger.info(f"Dataset loaded from BigQuery: {len(self.df):,} clean transactions")
+            logger.info(f"Date range: {self.df['InvoiceDate'].min()} to {self.df['InvoiceDate'].max()}")
+            logger.info(f"Total revenue: £{self.df['Revenue'].sum():,.2f}")
+            
             return True
             
         except Exception as e:
-            logger.error(f"Error loading data: {e}")
+            logger.error(f"Error loading data from BigQuery: {e}")
             return False
     
-    def get_ml_prediction(self, order_data):
-        """Get ML prediction for an order"""
-        if not self.ml_available:
-            return None
-            
-        try:
-            prediction_request = {
-                'quantity': int(order_data.get('Quantity', 1)),
-                'unit_price': float(order_data.get('UnitPrice', 0)),
-                'hour': int(order_data.get('Hour', 12)),
-                'day_of_week': int(order_data.get('DayOfWeek', 1))
-            }
-            
-            response = requests.post(
-                f"{self.ml_api_url}/predict",
-                json=prediction_request,
-                timeout=3
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return result.get('predicted_revenue', 0)
-            
-        except Exception as e:
-            logger.debug(f"ML prediction failed: {e}")
-            
-        return None
+    def load_data_sample_for_testing(self):
+        """Load a small sample from BigQuery for testing purposes"""
+        logger.info("Loading sample data for testing...")
+        return self.load_data_from_bigquery(limit=10000)
     
-    def process_daily_metrics(self, target_date=None, include_ml=True, ml_sample_size=50):
+    def process_daily_metrics(self, target_date=None):
         """
-        Process daily business metrics with optional ML predictions
-        
-        Args:
-            target_date: Date to process (None for most recent)
-            include_ml: Whether to include ML predictions
-            ml_sample_size: Number of orders to sample for ML predictions
+        Process daily business metrics from BigQuery data
+        If target_date is None, processes the most recent date
         """
         if self.df is None:
-            logger.error("Data not loaded. Call load_data() first.")
+            logger.error("Data not loaded. Call load_data_from_bigquery() first.")
             return None
             
         if target_date is None:
@@ -160,83 +172,167 @@ class EcommerceBatchProcessor:
             for country, rev in top_countries.items()
         ]
         
-        # Add ML predictions if available and requested
-        if include_ml and self.ml_available:
-            ml_metrics = self.add_ml_predictions(daily_data, ml_sample_size)
-            metrics.update(ml_metrics)
-        elif include_ml and not self.ml_available:
-            metrics['ml_status'] = 'ML API not available'
-            logger.info("💡 Start ML API with: python src/ml/prediction_api.py")
-        
         self.processed_metrics = metrics
         logger.info(f"Daily metrics processed: {metrics['total_orders']} orders, £{metrics['total_revenue']}")
         
         return metrics
     
-    def add_ml_predictions(self, daily_data, sample_size=50):
-        """Add ML predictions to daily processing"""
-        logger.info(f"Adding ML predictions (sample size: {sample_size})")
-        
-        # Sample data to avoid overwhelming the API
-        if len(daily_data) > sample_size:
-            sample_data = daily_data.sample(n=sample_size, random_state=42)
-        else:
-            sample_data = daily_data
-        
-        predictions = []
-        successful_predictions = 0
-        
-        for _, row in sample_data.iterrows():
-            order_data = {
-                'Quantity': row['Quantity'],
-                'UnitPrice': row['UnitPrice'],
-                'Hour': row['Hour'],
-                'DayOfWeek': row['DayOfWeek']
-            }
+    def run_advanced_bigquery_analytics(self):
+        """Run advanced analytics directly in BigQuery for better performance - FIXED VERSION"""
+        if not self.client:
+            logger.error("BigQuery client not initialized.")
+            return None
             
-            predicted_revenue = self.get_ml_prediction(order_data)
-            actual_revenue = row['Revenue']
-            
-            if predicted_revenue is not None:
-                accuracy = (1 - abs(actual_revenue - predicted_revenue) / actual_revenue) * 100 if actual_revenue > 0 else 0
-                predictions.append({
-                    'invoice_no': row['InvoiceNo'],
-                    'actual_revenue': round(actual_revenue, 2),
-                    'predicted_revenue': round(predicted_revenue, 2),
-                    'accuracy': round(accuracy, 2)
-                })
-                successful_predictions += 1
+        logger.info("Running advanced analytics in BigQuery...")
         
-        # Calculate ML metrics
-        ml_metrics = {}
-        if predictions:
-            total_actual = sum(p['actual_revenue'] for p in predictions)
-            total_predicted = sum(p['predicted_revenue'] for p in predictions)
-            avg_accuracy = sum(p['accuracy'] for p in predictions) / len(predictions)
+        try:
+            # Fixed analytics query - separate queries instead of problematic UNION
             
-            ml_metrics = {
-                'ml_predictions': {
-                    'sample_size': len(sample_data),
-                    'successful_predictions': successful_predictions,
-                    'success_rate': round((successful_predictions / len(sample_data)) * 100, 2),
-                    'avg_accuracy': round(avg_accuracy, 2),
-                    'total_actual_revenue': round(total_actual, 2),
-                    'total_predicted_revenue': round(total_predicted, 2),
-                    'prediction_difference': round(total_predicted - total_actual, 2),
-                    'sample_predictions': predictions[:5]  # Show first 5 for review
+            # Query 1: Daily trends
+            daily_query = f"""
+            SELECT 
+                DATE(InvoiceDate) as order_date,
+                COUNT(*) as total_orders,
+                ROUND(SUM(Quantity * UnitPrice), 2) as total_revenue,
+                COUNT(DISTINCT CustomerID) as unique_customers,
+                COUNT(DISTINCT StockCode) as unique_products,
+                ROUND(AVG(Quantity * UnitPrice), 2) as avg_order_value
+            FROM `{self.table_ref}`
+            WHERE 
+                Quantity > 0 
+                AND UnitPrice > 0
+                AND CustomerID IS NOT NULL
+            GROUP BY DATE(InvoiceDate)
+            ORDER BY order_date DESC
+            LIMIT 7
+            """
+            
+            logger.info("Executing daily trends query...")
+            daily_results = self.client.query(daily_query).to_dataframe()
+            
+            # Query 2: Customer segments  
+            segment_query = f"""
+            WITH customer_metrics AS (
+                SELECT 
+                    CustomerID,
+                    SUM(Quantity * UnitPrice) as total_revenue,
+                    COUNT(DISTINCT InvoiceNo) as order_frequency
+                FROM `{self.table_ref}`
+                WHERE 
+                    Quantity > 0 
+                    AND UnitPrice > 0
+                    AND CustomerID IS NOT NULL
+                GROUP BY CustomerID
+            )
+            SELECT 
+                CASE 
+                    WHEN total_revenue >= 2000 THEN 'VIP'
+                    WHEN total_revenue >= 1000 THEN 'High Value'
+                    WHEN total_revenue >= 200 THEN 'Medium Value'
+                    ELSE 'Low Value'
+                END as customer_segment,
+                COUNT(*) as customer_count,
+                ROUND(AVG(total_revenue), 2) as avg_revenue,
+                ROUND(AVG(order_frequency), 2) as avg_order_frequency
+            FROM customer_metrics
+            GROUP BY customer_segment
+            ORDER BY avg_revenue DESC
+            """
+            
+            logger.info("Executing customer segmentation query...")
+            segment_results = self.client.query(segment_query).to_dataframe()
+            
+            # Query 3: Product performance
+            product_query = f"""
+            SELECT 
+                StockCode,
+                ANY_VALUE(Description) as product_name,
+                SUM(Quantity) as total_quantity_sold,
+                ROUND(SUM(Quantity * UnitPrice), 2) as total_revenue,
+                COUNT(DISTINCT CustomerID) as unique_customers,
+                COUNT(DISTINCT InvoiceNo) as total_orders
+            FROM `{self.table_ref}`
+            WHERE 
+                Quantity > 0 
+                AND UnitPrice > 0
+                AND CustomerID IS NOT NULL
+            GROUP BY StockCode
+            ORDER BY total_revenue DESC
+            LIMIT 10
+            """
+            
+            logger.info("Executing product performance query...")
+            product_results = self.client.query(product_query).to_dataframe()
+            
+            # Process results
+            analytics_results = {
+                'daily_trends': [],
+                'customer_segments': {},
+                'top_products': [],
+                'summary': {
+                    'total_days_analyzed': len(daily_results),
+                    'customer_segments_identified': len(segment_results),
+                    'top_products_analyzed': len(product_results)
                 }
             }
             
-            logger.info(f"ML predictions: {successful_predictions}/{len(sample_data)} successful, {avg_accuracy:.1f}% avg accuracy")
-        else:
-            ml_metrics = {'ml_predictions': {'error': 'No successful predictions'}}
+            # Process daily trends
+            for _, row in daily_results.iterrows():
+                analytics_results['daily_trends'].append({
+                    'date': str(row['order_date']),
+                    'revenue': float(row['total_revenue']),
+                    'orders': int(row['total_orders']),
+                    'customers': int(row['unique_customers']),
+                    'products': int(row['unique_products']),
+                    'avg_order_value': float(row['avg_order_value'])
+                })
             
-        return ml_metrics
+            # Process customer segments
+            for _, row in segment_results.iterrows():
+                analytics_results['customer_segments'][row['customer_segment']] = {
+                    'customer_count': int(row['customer_count']),
+                    'avg_revenue': float(row['avg_revenue']),
+                    'avg_order_frequency': float(row['avg_order_frequency'])
+                }
+            
+            # Process top products
+            for _, row in product_results.iterrows():
+                analytics_results['top_products'].append({
+                    'stock_code': row['StockCode'],
+                    'product_name': row['product_name'][:50] if row['product_name'] else 'Unknown',
+                    'total_quantity': int(row['total_quantity_sold']),
+                    'total_revenue': float(row['total_revenue']),
+                    'unique_customers': int(row['unique_customers']),
+                    'total_orders': int(row['total_orders'])
+                })
+            
+            logger.info("Advanced BigQuery analytics completed successfully")
+            logger.info(f"✅ Processed {len(analytics_results['daily_trends'])} days of trends")
+            logger.info(f"✅ Identified {len(analytics_results['customer_segments'])} customer segments")
+            logger.info(f"✅ Analyzed {len(analytics_results['top_products'])} top products")
+            
+            # Log some interesting insights
+            if analytics_results['daily_trends']:
+                latest_day = analytics_results['daily_trends'][0]
+                logger.info(f"📊 Latest day revenue: £{latest_day['revenue']:,} from {latest_day['orders']:,} orders")
+            
+            if analytics_results['customer_segments']:
+                vip_segment = analytics_results['customer_segments'].get('VIP')
+                if vip_segment:
+                    logger.info(f"👑 VIP customers: {vip_segment['customer_count']} (avg £{vip_segment['avg_revenue']:,.2f})")
+            
+            return analytics_results
+            
+        except Exception as e:
+            logger.error(f"Error running BigQuery analytics: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return None
     
     def process_weekly_trends(self):
         """Process weekly trend analysis"""
         if self.df is None:
-            logger.error("Data not loaded. Call load_data() first.")
+            logger.error("Data not loaded. Call load_data_from_bigquery() first.")
             return None
             
         logger.info("Processing weekly trends...")
@@ -276,7 +372,7 @@ class EcommerceBatchProcessor:
     def process_customer_segmentation(self):
         """Process customer segmentation analysis"""
         if self.df is None:
-            logger.error("Data not loaded. Call load_data() first.")
+            logger.error("Data not loaded. Call load_data_from_bigquery() first.")
             return None
             
         logger.info("Processing customer segmentation...")
@@ -333,8 +429,44 @@ class EcommerceBatchProcessor:
             return 0.0
         return round(((series.iloc[-1] - series.iloc[0]) / series.iloc[0]) * 100, 2)
     
+    def save_results_to_bigquery(self, output_table_suffix='processed_metrics'):
+        """Save processed results back to BigQuery"""
+        if not self.client or not self.processed_metrics:
+            logger.error("No processed metrics to save or BigQuery client not initialized")
+            return False
+            
+        try:
+            # Create output table name
+            output_table = f"{self.dataset_id}.{output_table_suffix}"
+            
+            # Convert metrics to DataFrame
+            metrics_df = pd.DataFrame([self.processed_metrics])
+            metrics_df['processing_timestamp'] = datetime.now()
+            
+            # Configure job
+            job_config = bigquery.LoadJobConfig(
+                write_disposition="WRITE_APPEND",  # Append to existing table
+                autodetect=True  # Auto-detect schema
+            )
+            
+            # Load data to BigQuery
+            job = self.client.load_table_from_dataframe(
+                metrics_df, 
+                f"{self.project_id}.{output_table}", 
+                job_config=job_config
+            )
+            
+            job.result()  # Wait for job to complete
+            
+            logger.info(f"Metrics saved to BigQuery table: {output_table}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving results to BigQuery: {e}")
+            return False
+    
     def save_results(self, output_dir='data/processed'):
-        """Save processed results to files"""
+        """Save processed results to files (fallback method)"""
         Path(output_dir).mkdir(exist_ok=True)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         
@@ -362,27 +494,27 @@ class EcommerceBatchProcessor:
             logger.info(f"Customer segmentation saved to {seg_file}")
     
     def generate_daily_report(self):
-        """Generate a comprehensive daily report with ML insights"""
+        """Generate a comprehensive daily report"""
         if not self.processed_metrics:
             logger.error("No processed metrics available. Run process_daily_metrics() first.")
             return
             
         print("\n" + "="*50)
-        print("🏪 DAILY E-COMMERCE ANALYTICS REPORT")
+        print("DAILY E-COMMERCE ANALYTICS REPORT (BigQuery)")
         print("="*50)
         
         metrics = self.processed_metrics
-        print(f"📅 Date: {metrics['date']}")
-        print(f"💰 Total Revenue: £{metrics['total_revenue']:,}")
-        print(f"📦 Total Orders: {metrics['total_orders']:,}")
-        print(f"👥 Unique Customers: {metrics['unique_customers']:,}")
-        print(f"🛍️  Unique Products: {metrics['unique_products']:,}")
-        print(f"💳 Avg Order Value: £{metrics['avg_order_value']}")
-        print(f"📦 Total Quantity: {metrics['total_quantity']:,}")
-        print(f"🌍 Countries Served: {metrics['countries_served']}")
-        print(f"⏰ Peak Hour: {metrics['peak_hour']:02d}:00 (£{metrics['peak_hour_revenue']})")
+        print(f"Date: {metrics['date']}")
+        print(f"Total Revenue: £{metrics['total_revenue']:,}")
+        print(f"Total Orders: {metrics['total_orders']:,}")
+        print(f"Unique Customers: {metrics['unique_customers']:,}")
+        print(f"Unique Products: {metrics['unique_products']:,}")
+        print(f"Avg Order Value: £{metrics['avg_order_value']}")
+        print(f"Total Quantity: {metrics['total_quantity']:,}")
+        print(f"Countries Served: {metrics['countries_served']}")
+        print(f"Peak Hour: {metrics['peak_hour']:02d}:00 (£{metrics['peak_hour_revenue']})")
         
-        print(f"\n🏆 TOP PERFORMERS:")
+        print(f"\n TOP PERFORMERS:")
         print("Top Customers:")
         for i, customer in enumerate(metrics['top_customers'], 1):
             print(f"  {i}. Customer {customer['customer_id']}: £{customer['revenue']}")
@@ -395,59 +527,98 @@ class EcommerceBatchProcessor:
         for i, country in enumerate(metrics['top_countries'], 1):
             print(f"  {i}. {country['country']}: £{country['revenue']}")
         
-        # ML Predictions Section
-        if 'ml_predictions' in metrics:
-            ml_data = metrics['ml_predictions']
-            print(f"\n🤖 ML PREDICTION INSIGHTS:")
-            print("-" * 30)
-            
-            if 'error' not in ml_data:
-                print(f"📊 Sample Size: {ml_data['sample_size']} orders")
-                print(f"✅ Success Rate: {ml_data['success_rate']}%")
-                print(f"🎯 Avg Accuracy: {ml_data['avg_accuracy']:.1f}%")
-                print(f"💰 Predicted vs Actual: £{ml_data['total_predicted_revenue']} vs £{ml_data['total_actual_revenue']}")
-                
-                diff = ml_data['prediction_difference']
-                print(f"📈 Prediction Difference: £{diff:+.2f}")
-                
-                if 'sample_predictions' in ml_data:
-                    print(f"\n🔍 Sample Predictions:")
-                    for i, pred in enumerate(ml_data['sample_predictions'][:3], 1):
-                        print(f"  {i}. {pred['invoice_no']}: £{pred['actual_revenue']} → £{pred['predicted_revenue']} ({pred['accuracy']:.1f}% accuracy)")
-            else:
-                print("❌ ML predictions not available")
-        elif 'ml_status' in metrics:
-            print(f"\n🤖 ML STATUS: {metrics['ml_status']}")
-        
         print("="*50 + "\n")
 
+    def generate_advanced_analytics_report(self, analytics_results):
+        """Generate a comprehensive analytics report from BigQuery results"""
+        if not analytics_results:
+            logger.error("No analytics results available.")
+            return
+            
+        print("\n" + "="*60)
+        print("ADVANCED E-COMMERCE ANALYTICS REPORT (BigQuery)")
+        print("="*60)
+        
+        # Daily trends summary
+        if analytics_results.get('daily_trends'):
+            print(f"\n📈 DAILY TRENDS (Last {len(analytics_results['daily_trends'])} Days):")
+            total_revenue = sum(day['revenue'] for day in analytics_results['daily_trends'])
+            total_orders = sum(day['orders'] for day in analytics_results['daily_trends'])
+            
+            print(f"   Total Revenue: £{total_revenue:,.2f}")
+            print(f"   Total Orders: {total_orders:,}")
+            print(f"   Average Daily Revenue: £{total_revenue / len(analytics_results['daily_trends']):,.2f}")
+            
+            print(f"\n   Recent Days:")
+            for day in analytics_results['daily_trends'][:3]:
+                print(f"     {day['date']}: £{day['revenue']:,} ({day['orders']:,} orders, {day['customers']:,} customers)")
+        
+        # Customer segments
+        if analytics_results.get('customer_segments'):
+            print(f"\n👥 CUSTOMER SEGMENTATION:")
+            for segment, data in analytics_results['customer_segments'].items():
+                print(f"   {segment}: {data['customer_count']:,} customers")
+                print(f"     Avg Revenue: £{data['avg_revenue']:,.2f}")
+                print(f"     Avg Orders: {data['avg_order_frequency']:.1f}")
+        
+        # Top products
+        if analytics_results.get('top_products'):
+            print(f"\n🏆 TOP PERFORMING PRODUCTS:")
+            for i, product in enumerate(analytics_results['top_products'][:5], 1):
+                print(f"   {i}. {product['stock_code']}: £{product['total_revenue']:,}")
+                print(f"      {product['total_quantity']:,} units sold to {product['unique_customers']:,} customers")
+        
+        print("="*60 + "\n")
+
+
 def main():
-    """Main batch processing function with enhanced ML integration"""
-    print("🚀 Starting Enhanced E-Commerce Batch Processing...")
-    print("=" * 60)
+    """Main batch processing function with BigQuery integration"""
+    print("Starting E-Commerce Batch Processing with BigQuery...")
     
     # Initialize processor
     processor = EcommerceBatchProcessor()
     
-    # Load data
-    if not processor.load_data():
-        print("❌ Failed to load data. Exiting.")
+    # Initialize BigQuery client
+    if not processor.initialize_bigquery_client():
+        print("Failed to initialize BigQuery client. Exiting.")
+        print("Make sure:")
+        print("1. GOOGLE_APPLICATION_CREDENTIALS environment variable is set")
+        print("2. Service account key file exists and has BigQuery permissions")
+        print("3. Project ID and dataset exist in BigQuery")
         return
     
-    # Process daily metrics with ML integration
-    print("\n📊 Processing daily metrics with ML integration...")
-    metrics = processor.process_daily_metrics(include_ml=True, ml_sample_size=50)
+    # Load data from BigQuery
+    print("Loading data from BigQuery...")
+    if not processor.load_data_from_bigquery():
+        print("Failed to load data from BigQuery. Trying sample data...")
+        if not processor.load_data_sample_for_testing():
+            print("Failed to load any data. Exiting.")
+            return
     
+    # Process daily metrics
+    metrics = processor.process_daily_metrics()
     if metrics:
         processor.generate_daily_report()
     
-    # Save all results
-    print("\n💾 Saving results...")
-    processor.save_results()
+    # Run advanced BigQuery analytics
+    print("\nRunning advanced BigQuery analytics...")
+    advanced_results = processor.run_advanced_bigquery_analytics()
+    if advanced_results:
+        print("✅ Advanced analytics completed successfully!")
+        processor.generate_advanced_analytics_report(advanced_results)
+    else:
+        print("⚠️ Advanced analytics encountered issues, but basic processing completed.")
     
-    print("\n✅ Enhanced batch processing completed successfully!")
-    print("📁 Check data/processed/ for output files")
-    print("📋 Check docs/batch_processing.log for detailed logs")
+    # Save results to BigQuery
+    print("\nSaving results back to BigQuery...")
+    if processor.save_results_to_bigquery():
+        print("✅ Results saved to BigQuery successfully!")
+    else:
+        print("⚠️ Failed to save to BigQuery, saving to local files...")
+        processor.save_results()
+    
+    print("\n🎉 Batch processing completed successfully!")
+
 
 if __name__ == "__main__":
     main()

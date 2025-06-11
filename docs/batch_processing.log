@@ -45,3 +45,74 @@ Job ID: 4029157d-326d-476f-b758-bb507509a699
 2025-06-11 03:56:30,266 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
 2025-06-11 03:56:30,266 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
 2025-06-11 03:56:32,067 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
+2025-06-12 00:33:10,187 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 00:33:10,188 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 00:43:46,293 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-12 00:43:46,686 - INFO - Found 1 datasets in project
+2025-06-12 00:43:46,687 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:43:46,687 - INFO - Executing BigQuery query...
+2025-06-12 00:43:47,502 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 00:43:47,502 - INFO - Loading sample data for testing...
+2025-06-12 00:43:47,502 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:43:47,502 - INFO - Executing BigQuery query...
+2025-06-12 00:43:48,106 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 00:58:09,211 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-12 00:58:10,421 - INFO - Found 1 datasets in project
+2025-06-12 00:58:10,422 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:58:10,422 - INFO - Executing BigQuery query...
+2025-06-12 00:58:11,141 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 00:58:11,141 - INFO - Loading sample data for testing...
+2025-06-12 00:58:11,141 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:58:11,141 - INFO - Executing BigQuery query...
+2025-06-12 00:58:11,781 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 00:59:39,597 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-12 00:59:39,932 - INFO - Found 1 datasets in project
+2025-06-12 00:59:39,933 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:59:39,933 - INFO - Executing BigQuery query...
+2025-06-12 00:59:40,700 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 00:59:40,700 - INFO - Loading sample data for testing...
+2025-06-12 00:59:40,701 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 00:59:40,701 - INFO - Executing BigQuery query...
+2025-06-12 00:59:41,324 - ERROR - Error loading data from BigQuery: Please install the 'db-dtypes' package to use this function.
+2025-06-12 01:01:33,457 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-12 01:01:33,812 - INFO - Found 1 datasets in project
+2025-06-12 01:01:33,813 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 01:01:33,813 - INFO - Executing BigQuery query...
+2025-06-12 01:01:56,528 - INFO - Dataset loaded from BigQuery: 397,884 clean transactions
+2025-06-12 01:01:56,529 - INFO - Date range: 2010-12-01 08:26:00+00:00 to 2011-12-09 12:50:00+00:00
+2025-06-12 01:01:56,530 - INFO - Total revenue: £8,911,407.90
+2025-06-12 01:01:56,537 - INFO - Processing metrics for 2011-12-09
+2025-06-12 01:01:56,549 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-12 01:01:56,549 - INFO - Running advanced analytics in BigQuery...
+2025-06-12 01:01:56,549 - INFO - Executing daily trends query...
+2025-06-12 01:01:56,972 - INFO - Executing customer segmentation query...
+2025-06-12 01:01:57,645 - INFO - Executing product performance query...
+2025-06-12 01:01:58,016 - INFO - Advanced BigQuery analytics completed successfully
+2025-06-12 01:01:58,016 - INFO - ✅ Processed 7 days of trends
+2025-06-12 01:01:58,016 - INFO - ✅ Identified 4 customer segments
+2025-06-12 01:01:58,016 - INFO - ✅ Analyzed 10 top products
+2025-06-12 01:01:58,016 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
+2025-06-12 01:01:58,017 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
+2025-06-12 01:02:00,962 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
+2025-06-12 01:10:45,825 - INFO - Loading real data patterns...
+2025-06-12 01:10:48,348 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 01:10:58,756 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-12 01:10:59,136 - INFO - Found 1 datasets in project
+2025-06-12 01:10:59,136 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-12 01:10:59,136 - INFO - Executing BigQuery query...
+2025-06-12 01:11:21,187 - INFO - Dataset loaded from BigQuery: 397,884 clean transactions
+2025-06-12 01:11:21,188 - INFO - Date range: 2010-12-01 08:26:00+00:00 to 2011-12-09 12:50:00+00:00
+2025-06-12 01:11:21,188 - INFO - Total revenue: £8,911,407.90
+2025-06-12 01:11:21,195 - INFO - Processing metrics for 2011-12-09
+2025-06-12 01:11:21,206 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-12 01:11:21,207 - INFO - Running advanced analytics in BigQuery...
+2025-06-12 01:11:21,207 - INFO - Executing daily trends query...
+2025-06-12 01:11:21,919 - INFO - Executing customer segmentation query...
+2025-06-12 01:11:22,420 - INFO - Executing product performance query...
+2025-06-12 01:11:22,807 - INFO - Advanced BigQuery analytics completed successfully
+2025-06-12 01:11:22,807 - INFO - ✅ Processed 7 days of trends
+2025-06-12 01:11:22,807 - INFO - ✅ Identified 4 customer segments
+2025-06-12 01:11:22,808 - INFO - ✅ Analyzed 10 top products
+2025-06-12 01:11:22,808 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
+2025-06-12 01:11:22,808 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
+2025-06-12 01:11:24,680 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics

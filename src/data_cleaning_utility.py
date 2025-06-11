@@ -10,6 +10,29 @@ import json
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def convert_to_json_serializable(obj):
+    """Convert numpy/pandas types to JSON serializable types"""
+    import numpy as np
+    import pandas as pd
+
+    if isinstance(obj, dict):
+        return {key: convert_to_json_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_json_serializable(item) for item in obj]
+    elif isinstance(obj, (np.integer,)):
+        return int(obj)
+    elif isinstance(obj, (np.floating,)):
+        return float(obj)
+    elif isinstance(obj, (np.ndarray,)):
+        return obj.tolist()
+    elif isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
+
+
 class EcommerceDataCleaner:
     """
     Comprehensive data cleaning utility for the Online Retail dataset
@@ -349,7 +372,8 @@ class EcommerceDataCleaner:
             report_file = 'docs/data_cleaning_report.json'
             Path('docs').mkdir(exist_ok=True)
             with open(report_file, 'w') as f:
-                json.dump(report, f, indent=2)
+                serializable_report = convert_to_json_serializable(report)
+                json.dump(serializable_report, f, indent=2)
             logger.info(f"Cleaning report saved to {report_file}")
         
         return report

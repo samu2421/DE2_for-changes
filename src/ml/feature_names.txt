@@ -6,5 +6,5 @@ Month
 IsWeekend
 IsBusinessHours
 Country_encoded
-PriceRange_encoded
-QuantityRange_encoded
+PriceCategory_encoded
+QuantityCategory_encoded

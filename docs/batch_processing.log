@@ -9,3 +9,39 @@
 2025-06-07 15:36:27,738 - INFO - Processing customer segmentation...
 2025-06-07 15:36:27,771 - INFO - Customer segmentation complete: 4338 customers analyzed
 2025-06-07 15:36:27,771 - INFO - Customer segmentation saved to data/processed/customer_segmentation_20250607_153627.json
+2025-06-11 03:32:27,692 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-11 03:32:28,141 - INFO - Found 1 datasets in project
+2025-06-11 03:32:28,141 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-11 03:32:28,141 - INFO - Executing BigQuery query...
+2025-06-11 03:32:52,337 - INFO - Dataset loaded from BigQuery: 397,884 clean transactions
+2025-06-11 03:32:52,338 - INFO - Date range: 2010-12-01 08:26:00+00:00 to 2011-12-09 12:50:00+00:00
+2025-06-11 03:32:52,339 - INFO - Total revenue: £8,911,407.90
+2025-06-11 03:32:52,345 - INFO - Processing metrics for 2011-12-09
+2025-06-11 03:32:52,356 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-11 03:32:52,356 - INFO - Running advanced analytics in BigQuery...
+2025-06-11 03:32:52,567 - ERROR - Error running BigQuery analytics: 400 Column 2 in UNION ALL has incompatible types: DATE, STRING at [46:13]; reason: invalidQuery, location: query, message: Column 2 in UNION ALL has incompatible types: DATE, STRING at [46:13]
+
+Location: europe-west3
+Job ID: 4029157d-326d-476f-b758-bb507509a699
+
+2025-06-11 03:32:55,851 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
+2025-06-11 03:56:02,162 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
+2025-06-11 03:56:02,679 - INFO - Found 1 datasets in project
+2025-06-11 03:56:02,679 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
+2025-06-11 03:56:02,679 - INFO - Executing BigQuery query...
+2025-06-11 03:56:25,555 - INFO - Dataset loaded from BigQuery: 397,884 clean transactions
+2025-06-11 03:56:25,556 - INFO - Date range: 2010-12-01 08:26:00+00:00 to 2011-12-09 12:50:00+00:00
+2025-06-11 03:56:25,556 - INFO - Total revenue: £8,911,407.90
+2025-06-11 03:56:25,563 - INFO - Processing metrics for 2011-12-09
+2025-06-11 03:56:25,575 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-11 03:56:25,575 - INFO - Running advanced analytics in BigQuery...
+2025-06-11 03:56:25,575 - INFO - Executing daily trends query...
+2025-06-11 03:56:26,826 - INFO - Executing customer segmentation query...
+2025-06-11 03:56:27,619 - INFO - Executing product performance query...
+2025-06-11 03:56:30,265 - INFO - Advanced BigQuery analytics completed successfully
+2025-06-11 03:56:30,265 - INFO - ✅ Processed 7 days of trends
+2025-06-11 03:56:30,265 - INFO - ✅ Identified 4 customer segments
+2025-06-11 03:56:30,265 - INFO - ✅ Analyzed 10 top products
+2025-06-11 03:56:30,266 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
+2025-06-11 03:56:30,266 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
+2025-06-11 03:56:32,067 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics

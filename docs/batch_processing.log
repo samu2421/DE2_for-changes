@@ -9,3 +9,14 @@
 2025-06-07 15:36:27,738 - INFO - Processing customer segmentation...
 2025-06-07 15:36:27,771 - INFO - Customer segmentation complete: 4338 customers analyzed
 2025-06-07 15:36:27,771 - INFO - Customer segmentation saved to data/processed/customer_segmentation_20250607_153627.json
+2025-06-10 13:34:15,093 - INFO - Loading e-commerce dataset...
+2025-06-10 13:34:15,520 - INFO - Dataset loaded: 397,884 clean transactions
+2025-06-10 13:34:15,527 - INFO - Processing metrics for 2011-12-09
+2025-06-10 13:34:15,538 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-10 13:34:15,539 - INFO - Daily metrics saved to data/processed/daily_metrics_20250610_133415.json
+2025-06-10 13:34:15,539 - INFO - Processing weekly trends...
+2025-06-10 13:34:15,556 - INFO - Weekly trends processed: £428945.11 total revenue
+2025-06-10 13:34:15,556 - INFO - Weekly trends saved to data/processed/weekly_trends_20250610_133415.json
+2025-06-10 13:34:15,556 - INFO - Processing customer segmentation...
+2025-06-10 13:34:15,592 - INFO - Customer segmentation complete: 4338 customers analyzed
+2025-06-10 13:34:15,592 - INFO - Customer segmentation saved to data/processed/customer_segmentation_20250610_133415.json

@@ -102,7 +102,7 @@ def generate_fake_data_task(**context):
 
 
 def clean_data_task(**context):
-    """Task 2: Clean the generated data"""
+    """Task 2: Clean the generated data - FIXED VERSION"""
     try:
         from src.data_cleaning_utility import EcommerceDataCleaner
         import pandas as pd
@@ -118,37 +118,106 @@ def clean_data_task(**context):
         # Convert to DataFrame for cleaning
         df = pd.DataFrame(orders)
         
-        # Initialize cleaner with in-memory data
-        cleaner = EcommerceDataCleaner()
-        cleaner.df_raw = df
+        # Basic data cleaning
+        print(f"Initial data shape: {df.shape}")
         
-        # Analyze data quality
-        cleaner.analyze_data_quality_issues()
+        # Remove rows with missing critical values
+        critical_cols = ['CustomerID', 'InvoiceDate', 'Quantity', 'UnitPrice']
+        df = df.dropna(subset=critical_cols)
         
-        # Clean data for ML
-        cleaned_data = cleaner.clean_data_for_ml(aggressive_cleaning=True)
+        # Remove negative quantities and prices
+        df = df[df['Quantity'] > 0]
+        df = df[df['UnitPrice'] > 0]
+        
+        # Convert InvoiceDate to datetime
+        df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+        
+        # Create calculated revenue column
+        df['Revenue'] = df['Quantity'] * df['UnitPrice']
+        
+        # Create time-based features for ML
+        df['Hour'] = df['InvoiceDate'].dt.hour
+        df['DayOfWeek'] = df['InvoiceDate'].dt.dayofweek
+        df['Month'] = df['InvoiceDate'].dt.month
+        df['Year'] = df['InvoiceDate'].dt.year
+        df['Date'] = df['InvoiceDate'].dt.date
+        
+        # Create derived features that will be needed for ML
+        df['IsWeekend'] = (df['DayOfWeek'] >= 5).astype(int)
+        df['IsBusinessHours'] = ((df['Hour'] >= 9) & (df['Hour'] <= 17)).astype(int)
+        
+        # Clean and standardize text fields
+        if 'Description' in df.columns:
+            df['Description'] = df['Description'].fillna('Unknown Product')
+            df['Description'] = df['Description'].str.strip().str.upper()
+        
+        if 'Country' in df.columns:
+            df['Country'] = df['Country'].str.strip()
+            # Standardize common country names
+            country_mapping = {
+                'UNITED KINGDOM': 'United Kingdom',
+                'UK': 'United Kingdom',
+                'USA': 'United States',
+                'US': 'United States'
+            }
+            df['Country'] = df['Country'].replace(country_mapping)
+        
+        # Create price and quantity categories for ML
+        df['PriceCategory'] = pd.cut(df['UnitPrice'], 
+                                   bins=[0, 2, 5, 15, float('inf')], 
+                                   labels=['Low', 'Medium', 'High', 'Premium'])
+        
+        df['QuantityCategory'] = pd.cut(df['Quantity'], 
+                                      bins=[0, 1, 3, 10, float('inf')],
+                                      labels=['Single', 'Few', 'Multiple', 'Bulk'])
+        
+        print(f"Cleaned data shape: {df.shape}")
+        print(f"Columns created: {list(df.columns)}")
         
         # Ensure cleaned directory exists
         Path('/opt/airflow/data/cleaned').mkdir(parents=True, exist_ok=True)
         
         # Save cleaned data
-        cleaned_data.to_csv('/opt/airflow/data/cleaned/ml_ready_data.csv', index=False)
+        df.to_csv('/opt/airflow/data/cleaned/ml_ready_data.csv', index=False)
         
         # Generate and save cleaning report
-        report = cleaner.generate_cleaning_report(save_to_file=False)
-        with open('/opt/airflow/data/cleaned/cleaning_report.json', 'w') as f:
-            json.dump(report, f, indent=2, default=str)
+        cleaning_summary = {
+            'initial_rows': len(orders),
+            'final_rows': len(df),
+            'retention_rate': len(df) / len(orders) * 100 if len(orders) > 0 else 0,
+            'columns_created': list(df.columns),
+            'revenue_range': {
+                'min': float(df['Revenue'].min()),
+                'max': float(df['Revenue'].max()),
+                'mean': float(df['Revenue'].mean())
+            },
+            'cleaning_steps': [
+                'Removed rows with missing critical values',
+                'Removed negative quantities and prices',
+                'Created time-based features',
+                'Created derived ML features',
+                'Standardized text fields',
+                'Created categorical features'
+            ]
+        }
         
-        print(f"✅ Cleaned data: {len(cleaned_data)} rows retained")
+        with open('/opt/airflow/data/cleaned/cleaning_report.json', 'w') as f:
+            json.dump(cleaning_summary, f, indent=2, default=str)
+        
+        print(f"✅ Cleaned data: {len(df)} rows retained")
         print(f"📁 Saved to: /opt/airflow/data/cleaned/ml_ready_data.csv")
+        print(f"📊 Revenue range: £{df['Revenue'].min():.2f} - £{df['Revenue'].max():.2f}")
         
         return {
-            'cleaned_rows': len(cleaned_data),
-            'retention_rate': len(cleaned_data) / len(df) * 100 if len(df) > 0 else 0
+            'cleaned_rows': len(df),
+            'retention_rate': len(df) / len(orders) * 100 if len(orders) > 0 else 0,
+            'columns_created': list(df.columns)
         }
         
     except Exception as e:
         print(f"❌ Error in data cleaning: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
@@ -229,7 +298,7 @@ def batch_process_data_task(**context):
 
 
 def train_model_task(**context):
-    """Task 4: Train the ML model"""
+    """Task 4: Train the ML model - FIXED VERSION"""
     try:
         import pandas as pd
         from sklearn.ensemble import RandomForestRegressor
@@ -246,40 +315,74 @@ def train_model_task(**context):
         # Load cleaned data
         df = pd.read_csv('/opt/airflow/data/cleaned/ml_ready_data.csv')
         
-        # Prepare features
+        # Convert InvoiceDate to datetime and create time-based features
+        df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
+        df['Hour'] = df['InvoiceDate'].dt.hour
+        df['DayOfWeek'] = df['InvoiceDate'].dt.dayofweek
+        df['Month'] = df['InvoiceDate'].dt.month
+        
+        # Create the missing features that were causing the error
+        df['IsWeekend'] = (df['DayOfWeek'] >= 5).astype(int)
+        df['IsBusinessHours'] = ((df['Hour'] >= 9) & (df['Hour'] <= 17)).astype(int)
+        
+        # Create price and quantity categories
+        df['PriceCategory'] = pd.cut(df['UnitPrice'], 
+                                   bins=[0, 2, 5, 15, float('inf')], 
+                                   labels=['Low', 'Medium', 'High', 'Premium'])
+        
+        df['QuantityCategory'] = pd.cut(df['Quantity'], 
+                                      bins=[0, 1, 3, 10, float('inf')],
+                                      labels=['Single', 'Few', 'Multiple', 'Bulk'])
+        
+        # Define numerical features (these should all exist now)
         numerical_features = ['Quantity', 'UnitPrice', 'Hour', 'DayOfWeek', 'Month', 
                              'IsWeekend', 'IsBusinessHours']
-        categorical_features = ['Country', 'PriceCategory', 'QuantityCategory']
         
-        # Start with numerical features
-        X = df[numerical_features].copy()
+        # Check which numerical features actually exist in the DataFrame
+        available_numerical = [col for col in numerical_features if col in df.columns]
+        print(f"Available numerical features: {available_numerical}")
+        
+        # Use only available numerical features
+        X = df[available_numerical].copy()
+        
+        # Define categorical features
+        categorical_features = ['Country', 'PriceCategory', 'QuantityCategory']
         
         # Encode categorical features
         label_encoders = {}
         for cat_feature in categorical_features:
             if cat_feature in df.columns:
+                # Convert to string and handle missing values
                 cat_data = df[cat_feature].astype(str).fillna('Unknown')
+                
+                # Encode
                 le = LabelEncoder()
                 X[f'{cat_feature}_encoded'] = le.fit_transform(cat_data)
                 label_encoders[cat_feature] = le
+                print(f"Encoded {cat_feature}: {len(le.classes_)} unique values")
         
         # Target variable
         y = df['Revenue']
+        
+        print(f"Feature matrix shape: {X.shape}")
+        print(f"Target variable shape: {y.shape}")
+        print(f"Features: {list(X.columns)}")
         
         # Train/test split
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42
         )
         
-        # Train model
+        # Train model (set n_jobs=1 to avoid multiprocessing issues in Airflow)
         model = RandomForestRegressor(
             n_estimators=100,
             max_depth=15,
             min_samples_split=5,
             random_state=42,
-            n_jobs=-1
+            n_jobs=1  # Important: Set to 1 for Airflow compatibility
         )
         
+        print("Training model...")
         model.fit(X_train, y_train)
         
         # Evaluate model
@@ -287,34 +390,45 @@ def train_model_task(**context):
         test_mse = mean_squared_error(y_test, test_predictions)
         test_r2 = r2_score(y_test, test_predictions)
         
-        # Ensure data directory exists for saving models
+        print(f"Model training completed!")
+        print(f"R² Score: {test_r2:.4f}")
+        print(f"RMSE: £{np.sqrt(test_mse):.2f}")
+        
+        # Ensure data directory exists for saving models (writable directory)
         Path('/opt/airflow/data/models').mkdir(parents=True, exist_ok=True)
         
-        # Save model and artifacts
+        # Save model and artifacts to writable directory
         joblib.dump(model, '/opt/airflow/data/models/revenue_model.pkl')
+        print("✅ Model saved to /opt/airflow/data/models/revenue_model.pkl")
         
         with open('/opt/airflow/data/models/label_encoders.pkl', 'wb') as f:
             pickle.dump(label_encoders, f)
+        print("✅ Label encoders saved")
         
         with open('/opt/airflow/data/models/feature_names.txt', 'w') as f:
             f.write('\n'.join(X.columns))
+        print("✅ Feature names saved")
         
         performance = {
             'r2_score': float(test_r2),
             'rmse': float(np.sqrt(test_mse)),
             'feature_count': len(X.columns),
             'training_samples': len(X_train),
-            'test_samples': len(X_test)
+            'test_samples': len(X_test),
+            'features_used': list(X.columns)
         }
         
         print(f"✅ Model trained successfully")
         print(f"📊 R² Score: {test_r2:.4f}")
         print(f"📊 RMSE: £{np.sqrt(test_mse):.2f}")
+        print(f"📊 Features used: {len(X.columns)}")
         
         return performance
         
     except Exception as e:
         print(f"❌ Error in model training: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 

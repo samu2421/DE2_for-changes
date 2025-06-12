@@ -116,3 +116,29 @@ Job ID: 4029157d-326d-476f-b758-bb507509a699
 2025-06-12 01:11:22,808 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
 2025-06-12 01:11:22,808 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
 2025-06-12 01:11:24,680 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
+2025-06-12 19:04:28,795 - INFO - Loading real data patterns...
+2025-06-12 19:04:31,599 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 19:04:45,970 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 19:04:45,971 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 19:05:35,734 - INFO - Loading real data patterns...
+2025-06-12 19:05:38,482 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 19:08:30,251 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 19:08:30,253 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 19:08:30,391 - INFO - Loading real data patterns...
+2025-06-12 19:08:33,158 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 19:15:16,570 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 19:15:16,571 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 19:18:22,917 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 19:18:22,918 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 19:18:23,067 - INFO - Loading real data patterns...
+2025-06-12 19:18:25,821 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 20:04:21,963 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 20:04:21,964 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 20:06:36,871 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 20:06:36,871 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 20:06:37,000 - INFO - Loading real data patterns...
+2025-06-12 20:06:39,796 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-12 20:06:47,629 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-12 20:06:47,630 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-12 20:06:47,738 - INFO - Loading real data patterns...
+2025-06-12 20:06:50,369 - INFO - Loaded patterns for 200 products and 38 countries

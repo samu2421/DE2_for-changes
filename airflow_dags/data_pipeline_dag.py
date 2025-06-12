@@ -287,16 +287,16 @@ def train_model_task(**context):
         test_mse = mean_squared_error(y_test, test_predictions)
         test_r2 = r2_score(y_test, test_predictions)
         
-        # Ensure ml directory exists
-        Path('/opt/airflow/src/ml').mkdir(parents=True, exist_ok=True)
+        # Ensure data directory exists for saving models
+        Path('/opt/airflow/data/models').mkdir(parents=True, exist_ok=True)
         
         # Save model and artifacts
-        joblib.dump(model, '/opt/airflow/src/ml/revenue_model.pkl')
+        joblib.dump(model, '/opt/airflow/data/models/revenue_model.pkl')
         
-        with open('/opt/airflow/src/ml/label_encoders.pkl', 'wb') as f:
+        with open('/opt/airflow/data/models/label_encoders.pkl', 'wb') as f:
             pickle.dump(label_encoders, f)
         
-        with open('/opt/airflow/src/ml/feature_names.txt', 'w') as f:
+        with open('/opt/airflow/data/models/feature_names.txt', 'w') as f:
             f.write('\n'.join(X.columns))
         
         performance = {
@@ -341,7 +341,7 @@ def monitor_results_task(**context):
         data_files = {
             'training_data': Path('/opt/airflow/data/training_orders.json').exists(),
             'cleaned_data': Path('/opt/airflow/data/cleaned/ml_ready_data.csv').exists(),
-            'ml_model': Path('/opt/airflow/src/ml/revenue_model.pkl').exists(),
+            'ml_model': Path('/opt/airflow/data/models/revenue_model.pkl').exists(),
             'processed_metrics': len(list(Path('/opt/airflow/data/processed').glob('*.json'))) if Path('/opt/airflow/data/processed').exists() else 0
         }
         

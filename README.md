@@ -360,10 +360,6 @@ python -c "from google.cloud import bigquery; client = bigquery.Client(); print(
 - Update documentation for new features
 - Test your changes thoroughly
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - **UCI Machine Learning Repository** for the Online Retail dataset

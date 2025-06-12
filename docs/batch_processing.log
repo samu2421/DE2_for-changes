@@ -9,6 +9,17 @@
 2025-06-07 15:36:27,738 - INFO - Processing customer segmentation...
 2025-06-07 15:36:27,771 - INFO - Customer segmentation complete: 4338 customers analyzed
 2025-06-07 15:36:27,771 - INFO - Customer segmentation saved to data/processed/customer_segmentation_20250607_153627.json
+2025-06-10 13:34:15,093 - INFO - Loading e-commerce dataset...
+2025-06-10 13:34:15,520 - INFO - Dataset loaded: 397,884 clean transactions
+2025-06-10 13:34:15,527 - INFO - Processing metrics for 2011-12-09
+2025-06-10 13:34:15,538 - INFO - Daily metrics processed: 617 orders, £184349.28
+2025-06-10 13:34:15,539 - INFO - Daily metrics saved to data/processed/daily_metrics_20250610_133415.json
+2025-06-10 13:34:15,539 - INFO - Processing weekly trends...
+2025-06-10 13:34:15,556 - INFO - Weekly trends processed: £428945.11 total revenue
+2025-06-10 13:34:15,556 - INFO - Weekly trends saved to data/processed/weekly_trends_20250610_133415.json
+2025-06-10 13:34:15,556 - INFO - Processing customer segmentation...
+2025-06-10 13:34:15,592 - INFO - Customer segmentation complete: 4338 customers analyzed
+2025-06-10 13:34:15,592 - INFO - Customer segmentation saved to data/processed/customer_segmentation_20250610_133415.json
 2025-06-11 03:32:27,692 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
 2025-06-11 03:32:28,141 - INFO - Found 1 datasets in project
 2025-06-11 03:32:28,141 - INFO - Loading e-commerce dataset from BigQuery table: ecommerce-analytics-462115.ecommerce_data.historical_orders
@@ -20,10 +31,8 @@
 2025-06-11 03:32:52,356 - INFO - Daily metrics processed: 617 orders, £184349.28
 2025-06-11 03:32:52,356 - INFO - Running advanced analytics in BigQuery...
 2025-06-11 03:32:52,567 - ERROR - Error running BigQuery analytics: 400 Column 2 in UNION ALL has incompatible types: DATE, STRING at [46:13]; reason: invalidQuery, location: query, message: Column 2 in UNION ALL has incompatible types: DATE, STRING at [46:13]
-
 Location: europe-west3
 Job ID: 4029157d-326d-476f-b758-bb507509a699
-
 2025-06-11 03:32:55,851 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
 2025-06-11 03:56:02,162 - INFO - BigQuery client initialized for project: ecommerce-analytics-462115
 2025-06-11 03:56:02,679 - INFO - Found 1 datasets in project
@@ -44,6 +53,8 @@ Job ID: 4029157d-326d-476f-b758-bb507509a699
 2025-06-11 03:56:30,265 - INFO - ✅ Analyzed 10 top products
 2025-06-11 03:56:30,266 - INFO - 📊 Latest day revenue: £184,349.28 from 617 orders
 2025-06-11 03:56:30,266 - INFO - 👑 VIP customers: 903 (avg £7,442.34)
+HEAD
+2025-06-11 03:56:32,067 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
 2025-06-11 03:56:32,067 - INFO - Metrics saved to BigQuery table: ecommerce_data.processed_metrics
 2025-06-12 00:33:10,187 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
 2025-06-12 00:33:10,188 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
@@ -142,3 +153,4 @@ Job ID: 4029157d-326d-476f-b758-bb507509a699
 2025-06-12 20:06:47,630 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
 2025-06-12 20:06:47,738 - INFO - Loading real data patterns...
 2025-06-12 20:06:50,369 - INFO - Loaded patterns for 200 products and 38 countries
+01ef1567e1f2f348f4af89b656d021a9fa0c2a3c

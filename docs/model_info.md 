@@ -1,0 +1,23 @@
+# Revenue Prediction ML Model
+
+## Purpose
+Predict total **revenue per order** using simple features from e-commerce transactions.
+
+## Features Used
+- `Quantity`
+- `UnitPrice`
+- `Hour` of purchase
+- `DayOfWeek` of purchase
+
+## Target
+- `Revenue = Quantity * UnitPrice`
+
+## Algorithm
+- Random Forest Regressor (n_estimators=50)
+
+## Performance
+- Mean Squared Error (MSE): 2320.45
+- Training/Test Split: 80/20
+
+## Model File
+- Saved at: `src/ml/revenue_model.pkl`

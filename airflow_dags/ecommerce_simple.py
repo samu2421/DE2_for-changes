@@ -189,12 +189,12 @@ def simple_model_task(**context):
         # Test score
         score = model.score(X_test, y_test)
         
-        # Save model
-        Path('/opt/airflow/src/ml').mkdir(parents=True, exist_ok=True)
-        joblib.dump(model, '/opt/airflow/src/ml/simple_model.pkl')
+        # Save model to data directory (writable)
+        Path('/opt/airflow/data/models').mkdir(parents=True, exist_ok=True)
+        joblib.dump(model, '/opt/airflow/data/models/simple_model.pkl')
         
         print(f"✅ Model trained with R² score: {score:.4f}")
-        print("📁 Model saved to /opt/airflow/src/ml/simple_model.pkl")
+        print("📁 Model saved to /opt/airflow/data/models/simple_model.pkl")
         
         return {'model_score': score}
         

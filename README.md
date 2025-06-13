@@ -1,4 +1,4 @@
-# E-Commerce Analytics Data Pipeline
+# E-Commerce Analytics Data Pipeline project
 
 A comprehensive, production-ready data analytics platform for e-commerce businesses, featuring real-time streaming, machine learning predictions, and automated data processing pipelines.
 

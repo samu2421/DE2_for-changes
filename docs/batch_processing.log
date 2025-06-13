@@ -154,3 +154,13 @@ HEAD
 2025-06-12 20:06:47,738 - INFO - Loading real data patterns...
 2025-06-12 20:06:50,369 - INFO - Loaded patterns for 200 products and 38 countries
 01ef1567e1f2f348f4af89b656d021a9fa0c2a3c
+2025-06-13 09:55:58,005 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-13 09:55:58,006 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-13 09:55:58,172 - INFO - Loading real data patterns...
+2025-06-13 09:56:00,780 - INFO - Loaded patterns for 200 products and 38 countries
+2025-06-13 09:57:41,058 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-13 09:57:41,059 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-13 09:59:05,048 - ERROR - Error initializing BigQuery client: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+2025-06-13 09:59:05,050 - ERROR - Make sure GOOGLE_APPLICATION_CREDENTIALS is set and points to your service account key
+2025-06-13 09:59:05,216 - INFO - Loading real data patterns...
+2025-06-13 09:59:07,724 - INFO - Loaded patterns for 200 products and 38 countries

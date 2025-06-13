@@ -1,367 +1,374 @@
-# E-Commerce Analytics Platform
-**Data Engineering 2 - Final Project**  
-*MSc Applied Data Science and Analytics*
+# E-Commerce Analytics Data Pipeline
 
-## 🎯 Project Overview
+A comprehensive, production-ready data analytics platform for e-commerce businesses, featuring real-time streaming, machine learning predictions, and automated data processing pipelines.
 
-A comprehensive real-time e-commerce analytics system that demonstrates both batch and streaming data processing capabilities with integrated machine learning. The platform processes transaction data to provide business insights, customer segmentation, and revenue predictions.
+## 🚀 Overview
 
-### Key Features
-- **Real-time Data Streaming** with Google Cloud Pub/Sub
-- **Batch Processing Pipeline** for historical analysis and daily/weekly reporting
-- **Machine Learning Integration** for revenue prediction
-- **Customer Segmentation** and behavior analysis
-- **Business Intelligence Dashboards** with key performance metrics
-- **Comprehensive Monitoring** and logging
+This project implements a complete data engineering solution for e-commerce analytics, combining batch processing, streaming data, machine learning, and system monitoring. Built with Apache Airflow, Docker, and Google Cloud Platform, it provides scalable analytics for online retail businesses.
 
-## 🏗️ Architecture
+### Key Capabilities
 
+- **📊 Data Pipeline Orchestration**: Automated daily processing using Apache Airflow
+- **🤖 ML-Powered Revenue Prediction**: Real-time revenue forecasting using Random Forest models
+- **🌊 Streaming Data Processing**: Real-time order processing with Google Cloud Pub/Sub
+- **📈 Business Intelligence**: Automated daily/weekly reports and customer segmentation
+- **🔍 Data Quality Management**: Comprehensive data cleaning and validation
+- **📡 System Monitoring**: Health checks, performance metrics, and alerting
+- **☁️ Cloud Integration**: BigQuery for large-scale data processing
+
+## ✨ Features
+
+### Data Processing
+- **Batch Processing**: Daily metrics calculation, customer segmentation, product analysis
+- **Streaming Pipeline**: Real-time order processing and ML prediction integration
+- **Data Cleaning**: Automated data quality checks and preprocessing
+- **Fake Data Generation**: Realistic test data generation for development and testing
+
+### Machine Learning
+- **Revenue Prediction**: ML model for predicting order values
+- **Feature Engineering**: Automated feature creation from raw e-commerce data
+- **Model Training**: Automated retraining with BigQuery integration
+- **Prediction API**: REST API for real-time ML predictions
+
+### Infrastructure
+- **Docker Containerization**: Complete containerized deployment
+- **Apache Airflow**: Workflow orchestration and scheduling
+- **Google Cloud Integration**: BigQuery, Pub/Sub, and Cloud Storage
+- **Monitoring Dashboard**: System health and performance monitoring
+
+## 🛠️ Prerequisites
+
+### Required Software
+- **Docker** (v20.10+) and **Docker Compose** (v2.0+)
+- **Python** 3.9+
+- **Git**
+
+### Required Accounts/Services
+- **Google Cloud Platform** account (for BigQuery and Pub/Sub)
+- **Kaggle** account (for dataset download)
+
+### Hardware Requirements
+- **RAM**: 8GB minimum, 16GB recommended
+- **Storage**: 10GB free space
+- **CPU**: 4+ cores recommended
+
+## 📦 Installation
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd ecommerce-analytics-pipeline
 ```
-📊 Kaggle Dataset → 🔄 Batch Processing → 📈 BigQuery Storage
-                            ↓
-🌊 Streaming Data → 📡 Pub/Sub → 🤖 ML Predictions → 📊 Real-time Analytics
-                            ↓
-                    🔍 Monitoring & Alerts
+
+### 2. Download Dataset
+Download the Online Retail dataset from Kaggle:
+```bash
+# Visit: https://www.kaggle.com/datasets/vijayuv/onlineretail
+# Download OnlineRetail.csv and place it in the data/ directory
+mkdir -p data
+# Place OnlineRetail.csv in data/OnlineRetail.csv
 ```
 
-### Technology Stack
-- **Data Processing**: Python, Pandas, NumPy
-- **Cloud Platform**: Google Cloud Platform (BigQuery, Pub/Sub)
-- **Machine Learning**: Scikit-learn, Random Forest
-- **API Framework**: Flask
-- **Monitoring**: Python logging, psutil
-- **Data Generation**: Faker library
+### 3. Set Up Environment
+```bash
+# Run the setup script
+chmod +x setup_airflow.sh
+./setup_airflow.sh
 
-## 📁 Project Structure
-
+# Or set up manually:
+cp .env.template .env
+mkdir -p data/{processed,monitoring,cleaned,ml_ready}
+mkdir -p logs
 ```
-ecommerce-analytics-project/
-├── data/
-│   ├── OnlineRetail.csv           # Kaggle dataset
-│   ├── ml_ready/                  # Processed ML datasets
-│   └── processed/                 # Batch processing outputs
-├── src/
-│   ├── batch/
-│   │   └── daily_processor.py     # Main batch processing pipeline
-│   ├── ml/
-│   │   ├── train_model.py         # ML model training
-│   │   ├── prediction_api.py      # Flask prediction API
-│   │   ├── test_api.py           # API testing script
-│   │   └── data_preparation.py    # ML data preprocessing
-│   ├── streaming/
-│   │   ├── publisher.py          # Pub/Sub message publisher
-│   │   └── consumer.py           # Real-time stream processor
-│   ├── data_analysis.py          # Exploratory data analysis
-│   └── fake_data_generator.py    # Synthetic data generation
-├── docs/
-│   ├── batch_processing.log      # Processing logs
-│   ├── dataset_summary.csv       # Data analysis results
-│   └── business_metrics.json     # Key business KPIs
-└── requirements.txt              # Python dependencies
+
+### 4. Configure Google Cloud (Optional)
+```bash
+# Set up GCP credentials for BigQuery and Pub/Sub
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/service-account-key.json"
+
+# Update .env file with your GCP project ID
+echo "GOOGLE_CLOUD_PROJECT=your-project-id" >> .env
+```
+
+### 5. Install Python Dependencies
+```bash
+pip install -r requirements.txt
 ```
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-1. **Python Environment** (3.9)
+### Option 1: Docker Deployment (Recommended)
 ```bash
-pip install pandas numpy faker google-cloud-pubsub google-cloud-bigquery 
-pip install scikit-learn flask apache-airflow psutil matplotlib seaborn
+# Build and start all services
+docker-compose up --build -d
+
+# Wait for services to initialize (2-3 minutes)
+docker-compose logs -f
+
+# Access Airflow Web UI
+# Navigate to: http://localhost:8080
+# Username: airflow
+# Password: airflow
 ```
 
-2. **Kaggle Dataset**
-   - Download [Online Retail Dataset](https://www.kaggle.com/datasets/vijayuv/onlineretail)
-   - Place `OnlineRetail.csv` in the `data/` folder
-
-3. **Google Cloud Setup**
-   - Create GCP project with BigQuery and Pub/Sub APIs enabled
-   - Download service account JSON key
-   - Set `GOOGLE_APPLICATION_CREDENTIALS` environment variable
-
-### Installation & Setup
-
-1. **Clone and Setup**
+### Option 2: Local Development
 ```bash
-git clone <repository-url>
-cd ecommerce-analytics-project
-pip install -r requirements.txt
-```
+# 1. Test the complete system
+python test_complete_system.py
 
-2. **Initialize Data Analysis**
-```bash
-python src/data_analysis.py
-```
-
-3. **Prepare ML Data**
-```bash
-python src/ml/data_preparation.py
-```
-
-4. **Train ML Model**
-```bash
+# 2. Train ML model
 python src/ml/train_model.py
-```
 
-## 🔧 Usage Guide
-
-### 1. Batch Processing Pipeline
-
-Process historical data and generate business intelligence reports:
-
-```bash
-python src/batch/daily_processor.py
-```
-
-**Features:**
-- Daily business metrics calculation
-- Weekly trend analysis
-- Customer segmentation (VIP, High, Medium, Low value)
-- Top performers identification
-- Revenue and order analytics
-
-**Output Example:**
-```
-==================================================
-DAILY E-COMMERCE ANALYTICS REPORT
-==================================================
-Date: 2011-12-09
-Total Revenue: £184,349.28
-Total Orders: 617
-Unique Customers: 287
-Unique Products: 1,814
-Avg Order Value: £298.94
-Peak Hour: 12:00 (£28,485.67)
-```
-
-### 2. Machine Learning API
-
-Start the revenue prediction service:
-
-```bash
-# Terminal 1: Start API
+# 3. Start ML API
 python src/ml/prediction_api.py
 
-# Terminal 2: Test predictions
+# 4. Run batch processing
+python src/batch/daily_processor.py
+
+# 5. Start monitoring
+python src/monitoring/monitor.py
+```
+
+## 📋 Usage
+
+### Running Data Pipeline
+
+#### Using Airflow (Docker)
+1. Access Airflow UI at `http://localhost:8080`
+2. Enable the `ecommerce_data_pipeline` DAG
+3. Trigger the DAG manually or wait for scheduled execution
+4. Monitor progress in the Airflow interface
+
+#### Manual Execution
+```bash
+# Run individual components
+python src/data_analysis.py              # Data analysis
+python src/data_cleaning_utility.py     # Data cleaning
+python src/batch/daily_processor.py     # Batch processing
+python src/ml/train_model.py            # ML training
+```
+
+### Testing ML Predictions
+```bash
+# Start the ML API
+python src/ml/prediction_api.py
+
+# Test predictions
 python src/ml/test_api.py
+
+# Manual API test
+curl -X POST http://localhost:5001/predict \
+  -H "Content-Type: application/json" \
+  -d '{"quantity": 3, "unit_price": 15.99, "hour": 14, "day_of_week": 2}'
 ```
 
-**API Endpoints:**
-- `POST /predict` - Predict order revenue
-- `GET /health` - Service health check
-
-**Example Request:**
-```json
-{
-    "quantity": 3,
-    "unit_price": 15.50,
-    "hour": 14,
-    "day_of_week": 2
-}
-```
-
-**Example Response:**
-```json
-{
-    "predicted_revenue": 46.50,
-    "status": "success"
-}
-```
-
-### 3. Real-time Streaming
-
-Process live transaction data:
-
+### Streaming Data Processing
 ```bash
 # Terminal 1: Start consumer
 python src/streaming/consumer.py
 
-# Terminal 2: Publish test data
+# Terminal 2: Start publisher
 python src/streaming/publisher.py
 ```
 
-**Real-time Analytics:**
-- Transaction volume monitoring
-- High-value order alerts (>£100)
-- Revenue tracking
-- Customer behavior patterns
+### System Monitoring
+```bash
+# Run system health check
+python src/monitoring/monitor.py
 
-### 4. System Monitoring
+# Continuous monitoring
+python src/monitoring/monitor.py
+# Choose option 2 for continuous monitoring
+```
 
+## 📁 Project Structure
+
+```
+ecommerce-analytics-pipeline/
+├── airflow_dags/                 # Airflow DAG definitions
+│   ├── data_pipeline_dag.py      # Main data pipeline DAG
+│   └── ecommerce_simple.py       # Simplified testing DAG
+├── src/                          # Source code
+│   ├── batch/                    # Batch processing
+│   │   ├── daily_processor.py    # BigQuery-powered batch processor
+│   │   └── integrated_processor.py # ML-integrated processor
+│   ├── ml/                       # Machine learning
+│   │   ├── train_model.py        # Model training
+│   │   ├── prediction_api.py     # REST API for predictions
+│   │   ├── data_preparation.py   # Feature engineering
+│   │   └── test_api.py          # API testing
+│   ├── streaming/                # Real-time data processing
+│   │   ├── consumer.py           # Pub/Sub consumer
+│   │   └── publisher.py          # Pub/Sub publisher
+│   ├── monitoring/               # System monitoring
+│   │   └── monitor.py            # Health monitoring
+│   ├── data_analysis.py          # Data exploration
+│   ├── data_cleaning_utility.py  # Data quality management
+│   └── fake_data_generator.py    # Test data generation
+├── data/                         # Data storage
+│   ├── OnlineRetail.csv          # Main dataset (download required)
+│   ├── processed/                # Processed outputs
+│   ├── cleaned/                  # Cleaned datasets
+│   └── monitoring/               # Monitoring logs
+├── docs/                         # Documentation and logs
+├── docker-compose.yaml           # Docker services configuration
+├── Dockerfile                    # Airflow container definition
+├── requirements.txt              # Python dependencies
+├── setup_airflow.sh             # Setup script
+└── test_complete_system.py      # System testing
+```
+
+## 🛠️ Technologies Used
+
+### Core Technologies
+- **Python 3.9+**: Primary programming language
+- **Apache Airflow 2.8.1**: Workflow orchestration
+- **Docker & Docker Compose**: Containerization
+- **PostgreSQL**: Airflow metadata database
+
+### Data Processing
+- **pandas**: Data manipulation and analysis
+- **numpy**: Numerical computing
+- **Google Cloud BigQuery**: Large-scale data processing
+- **Google Cloud Pub/Sub**: Real-time messaging
+
+### Machine Learning
+- **scikit-learn**: ML algorithms and preprocessing
+- **joblib**: Model serialization
+- **Flask**: ML prediction API
+
+### Monitoring & Utilities
+- **psutil**: System monitoring
+- **requests**: HTTP client
+- **Faker**: Test data generation
+
+## 🔧 Configuration
+
+### Environment Variables
+Key environment variables in `.env`:
+```bash
+# Airflow Configuration
+AIRFLOW_UID=50000
+_AIRFLOW_WWW_USER_USERNAME=airflow
+_AIRFLOW_WWW_USER_PASSWORD=airflow
+
+# Google Cloud Platform
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+GOOGLE_CLOUD_PROJECT=your-project-id
+
+# Database
+POSTGRES_USER=airflow
+POSTGRES_PASSWORD=airflow
+POSTGRES_DB=airflow
+```
+
+### API Endpoints
+- **Airflow UI**: `http://localhost:8080`
+- **ML Prediction API**: `http://localhost:5001`
+  - `GET /health` - Health check
+  - `POST /predict` - Revenue prediction
+  - `POST /predict/simple` - Simplified prediction
+
+## 🧪 Testing
+
+### Run Complete System Test
+```bash
+python test_complete_system.py
+```
+
+### Individual Component Tests
+```bash
+# Test ML API
+python src/ml/test_api.py
+
+# Test data processing
+python src/data_analysis.py
+
+# Test fake data generation
+python src/fake_data_generator.py
+```
+
+## 📊 Monitoring
+
+The system includes comprehensive monitoring:
+
+- **System Health**: CPU, memory, disk usage
+- **API Health**: Response times, error rates
+- **Data Quality**: File sizes, processing times
+- **Business Metrics**: Revenue, order volumes, customer counts
+
+Access monitoring via:
 ```bash
 python src/monitoring/monitor.py
 ```
-
-Monitors:
-- CPU and memory usage
-- API health status
-- Processing performance
-- Error rates and alerts
-
-## 📊 Business Intelligence Features
-
-### Daily Metrics Dashboard
-- **Revenue Analytics**: Total daily/weekly revenue, growth rates
-- **Order Intelligence**: Order volumes, average order values
-- **Customer Insights**: Unique customers, retention metrics
-- **Product Performance**: Best-selling products, inventory trends
-- **Geographic Analysis**: Revenue by country/region
-
-### Customer Segmentation
-- **VIP Customers**: Top 5% by revenue
-- **High Value**: 67th-95th percentile
-- **Medium Value**: 33rd-67th percentile  
-- **Low Value**: Bottom 33%
-
-### Predictive Analytics
-- **Revenue Forecasting**: ML-powered order value prediction
-- **Peak Time Analysis**: Optimal business hours identification
-- **Seasonal Trends**: Monthly and weekly pattern recognition
-
-## 🔬 Data Pipeline Architecture
-
-### Batch Processing Flow
-```
-Raw Data → Data Cleaning → Feature Engineering → Analytics → Storage → Reports
-```
-
-### Streaming Processing Flow
-```
-Live Orders → Pub/Sub → Real-time Processing → ML Predictions → Alerts
-```
-
-### ML Pipeline
-```
-Historical Data → Feature Engineering → Model Training → API Deployment → Predictions
-```
-
-## 📈 Performance Metrics
-
-- **Data Volume**: 397,884+ clean transactions processed
-- **Processing Speed**: ~10,000 records/minute batch processing
-- **ML Accuracy**: Random Forest model with optimized MSE
-- **Real-time Latency**: <100ms streaming processing
-- **API Response Time**: <50ms prediction endpoint
-
-## 🛠️ Development & Deployment
-
-### Running the Complete System
-
-1. **Start Core Services**
-```bash
-# ML API (Terminal 1)
-python src/ml/prediction_api.py
-
-# Monitoring (Terminal 2)  
-python src/monitoring/monitor.py
-```
-
-2. **Process Historical Data**
-```bash
-python src/batch/daily_processor.py
-```
-
-3. **Enable Real-time Processing**
-```bash
-# Consumer (Terminal 3)
-python src/streaming/consumer.py
-
-# Publisher (Terminal 4)
-python src/streaming/publisher.py
-```
-
-### Configuration
-
-Update GCP settings in streaming files:
-```python
-# Replace 'your-project-id' with actual GCP project ID
-topic_path = publisher.topic_path('your-project-id', 'orders-stream')
-subscription_path = subscriber.subscription_path('your-project-id', 'orders-consumer')
-```
-
-## 🎯 Business Value & Use Cases
-
-### Retail Intelligence
-- **Revenue Optimization**: Identify peak sales periods and optimize staffing
-- **Inventory Management**: Predict demand patterns for better stock planning
-- **Customer Retention**: Segment customers for targeted marketing campaigns
-
-### Real-time Operations
-- **Fraud Detection**: Monitor unusual transaction patterns
-- **Dynamic Pricing**: Adjust prices based on real-time demand
-- **Supply Chain**: Real-time inventory alerts and reorder triggers
-
-### Strategic Planning
-- **Market Analysis**: Geographic performance insights
-- **Product Strategy**: Data-driven product development decisions
-- **Financial Forecasting**: Revenue prediction for business planning
 
 ## 🚨 Troubleshooting
 
 ### Common Issues
 
-**"Module not found" errors:**
+#### Docker Services Won't Start
 ```bash
-pip install --user [package-name]
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+# Check logs
+docker-compose logs
+
+# Reset everything
+docker-compose down -v
+docker system prune
+docker-compose up --build
 ```
 
-**GCP Authentication errors:**
+#### ML API Not Working
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/service-key.json"
+# Check if model exists
+ls -la src/ml/revenue_model.pkl
+
+# Retrain model
+python src/ml/train_model.py
+
+# Check API logs
+python src/ml/prediction_api.py
 ```
 
-**API not responding:**
-- Verify Flask app runs on port 5001
-- Check firewall settings
-- Ensure model file exists: `src/ml/revenue_model.pkl`
+#### BigQuery Connection Issues
+```bash
+# Check credentials
+echo $GOOGLE_APPLICATION_CREDENTIALS
 
-**Data file missing:**
-- Download OnlineRetail.csv from Kaggle
-- Place in `data/` directory
-- Run data analysis first: `python src/data_analysis.py`
+# Test connection
+python -c "from google.cloud import bigquery; client = bigquery.Client(); print('Connected!')"
+```
 
-## 📝 Future Enhancements
+### Getting Help
+1. Check the logs in `docs/` directory
+2. Run the system test: `python test_complete_system.py`
+3. Check Docker logs: `docker-compose logs -f`
 
-- **Advanced ML Models**: Deep learning for complex pattern recognition
-- **Real-time Dashboards**: Interactive web-based analytics interface
-- **Automated Alerting**: Email/SMS notifications for critical events
-- **Data Lake Integration**: Scalable storage for big data analytics
-- **A/B Testing Framework**: Experiment management and analysis
-- **Advanced Security**: Data encryption and access controls
+## 🤝 Contributing
 
-## 👥 Team Contributions
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and add tests
+4. **Run the test suite**: `python test_complete_system.py`
+5. **Commit your changes**: `git commit -m 'Add amazing feature'`
+6. **Push to the branch**: `git push origin feature/amazing-feature`
+7. **Open a Pull Request**
 
-This project demonstrates expertise in:
-- **Data Architecture**: Scalable pipeline design and implementation
-- **Machine Learning**: Model development, training, and deployment
-- **Cloud Engineering**: GCP services integration and management
-- **Real-time Systems**: Streaming data processing and analytics
-- **Business Intelligence**: KPI development and reporting automation
+### Development Guidelines
+- Follow PEP 8 style guidelines
+- Add docstrings to all functions
+- Include error handling and logging
+- Update documentation for new features
+- Test your changes thoroughly
 
-## 📊 Demo Script
+## 🙏 Acknowledgments
 
-### 5-Minute System Demonstration
-
-1. **Architecture Overview** (1 min)
-   - Show system diagram and data flow
-   - Explain batch vs streaming components
-
-2. **Real-time Processing** (2 min)
-   - Start monitoring dashboard
-   - Demonstrate live data streaming
-   - Show real-time alerts and analytics
-
-3. **ML Predictions** (1 min)
-   - API call demonstration
-   - Revenue prediction examples
-   - Model performance metrics
-
-4. **Business Intelligence** (1 min)
-   - Daily analytics report
-   - Customer segmentation results
-   - Key business insights
+- **UCI Machine Learning Repository** for the Online Retail dataset
+- **Apache Airflow** community for the orchestration framework
+- **Google Cloud Platform** for cloud infrastructure
+- **scikit-learn** community for machine learning tools
 
 ---
 
-*This project showcases a production-ready data engineering solution combining modern cloud technologies, machine learning, and real-time analytics for comprehensive business intelligence.*
+**Built with ❤️ for data engineering and analytics**
+
+For questions or support, please open an issue in the GitHub repository.

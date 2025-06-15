@@ -2,6 +2,12 @@ import json
 import requests
 from google.cloud import pubsub_v1
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from simple_littles_law import order_arrives, order_completes, show_metrics
+
+
 # Your project ID
 PROJECT_ID = "ecommerce-analytics-462115"
 SUBSCRIPTION_NAME = "orders-consumer"
@@ -15,6 +21,8 @@ def callback(message):
         order = json.loads(message.data.decode('utf-8'))
         print(f"📦 Received order: {order['InvoiceNo']} - {order['Quantity']} x £{order['UnitPrice']}")
         
+        order_arrives(order_id)
+
         # Calculate actual revenue
         actual_revenue = float(order['Quantity']) * float(order['UnitPrice'])
         
@@ -44,6 +52,9 @@ def callback(message):
         message.ack()  # Acknowledge the message
     except Exception as e:
         print(f"❌ Error processing message: {e}")
+        
+        order_completes(order_id)
+
         message.ack()
 
 def start_consuming():
@@ -60,6 +71,9 @@ def start_consuming():
     except KeyboardInterrupt:
         streaming_pull_future.cancel()
         print("\n🛑 Consumer stopped")
+
+        print("\n📊 Final Little's Law Report:")
+        show_metrics()
 
 if __name__ == "__main__":
     start_consuming()

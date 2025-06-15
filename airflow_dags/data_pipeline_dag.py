@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
+from simple_littles_law import order_arrives, order_completes, show_metrics
 
 # Add the project root to Python path
 import sys
@@ -57,6 +58,10 @@ def generate_fake_data_task(**context):
         from pathlib import Path
         
         print("🏭 Starting fake data generation...")
+
+        pipeline_id = f"pipeline_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        order_arrives(pipeline_id)
+        print(f"📊 Little's Law: Started tracking pipeline {pipeline_id}")
         
         # Initialize generator
         generator = EcommerceFakeDataGenerator()
@@ -91,6 +96,7 @@ def generate_fake_data_task(**context):
         print(f"📊 Total revenue: £{summary['total_revenue']:.2f}")
         
         return {
+            'pipeline_id': pipeline_id,  # ADD THIS LINE
             'training_orders_count': len(training_orders),
             'streaming_orders_count': len(streaming_orders),
             'total_revenue': summary['total_revenue']
@@ -110,6 +116,9 @@ def clean_data_task(**context):
         from pathlib import Path
         
         print("🧹 Starting data cleaning...")
+
+        gen_results = context['task_instance'].xcom_pull(task_ids='generate_fake_data')
+        pipeline_id = gen_results['pipeline_id']
         
         # Load generated data
         with open('/opt/airflow/data/training_orders.json', 'r') as f:
@@ -209,6 +218,7 @@ def clean_data_task(**context):
         print(f"📊 Revenue range: £{df['Revenue'].min():.2f} - £{df['Revenue'].max():.2f}")
         
         return {
+            'pipeline_id': pipeline_id,
             'cleaned_rows': len(df),
             'retention_rate': len(df) / len(orders) * 100 if len(orders) > 0 else 0,
             'columns_created': list(df.columns)
@@ -441,6 +451,10 @@ def monitor_results_task(**context):
         from datetime import datetime
         
         print("🖥️ Starting pipeline monitoring...")
+
+        results = context['task_instance'].xcom_pull(task_ids='generate_fake_data')
+        pipeline_id = results['pipeline_id']
+        order_completes(pipeline_id)
         
         # Collect results from previous tasks
         task_instance = context['task_instance']
@@ -504,8 +518,18 @@ def monitor_results_task(**context):
         
         print(f"📁 Files Created: {sum(data_files.values())}/4")
         print(f"🏁 Overall Status: {monitoring_report['pipeline_health']['overall_status'].upper()}")
+        print("\n📊 Little's Law Analysis for Pipeline:")
+        show_metrics()
         
-        return monitoring_report
+        print("=" * 60)
+
+        return {
+            'pipeline_id': pipeline_id,
+            'completion_status': 'success',
+            'monitoring_report': monitoring_report,
+            'pipeline_health': monitoring_report['pipeline_health']
+        }
+        
         
     except Exception as e:
         print(f"❌ Error in monitoring: {e}")
